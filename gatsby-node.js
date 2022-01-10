@@ -17,7 +17,7 @@ exports.createPages = ({ graphql, actions }) => {
   // Oops 2
   createRedirect({
     fromPath: '/not-everything-should-be-a-hook/',
-    toPath: '/why-isnt-x-a-hook/',
+    toPath: '/cmp_python_js/',
     isPermanent: true,
     redirectInBrowser: true,
   });
@@ -148,9 +148,7 @@ exports.createPages = ({ graphql, actions }) => {
                 } else if (link.startsWith('/' + langKey + '/')) {
                   console.log('-----------------');
                   console.error(
-                    `It looks like "${langKey}" translation of "${
-                      post.node.frontmatter.title
-                    }" ` +
+                    `It looks like "${langKey}" translation of "${post.node.frontmatter.title}" ` +
                       `is linking to a translated link: ${link}. Don't do this. Use the original link. ` +
                       `The blog post renderer will automatically use a translation if it is available.`
                   );
