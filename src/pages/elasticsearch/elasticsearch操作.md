@@ -327,16 +327,93 @@ PUT http://127.0.0.1:9200/role/_mapping
 为了看得更简洁清晰，以下es均经过处理：
 es = Elasticsearch(server_list, timeout=60)
 ### 4.1. fuzzy 模糊查询
+```jsx{4}
+输入：
+{
+    "query": {
+        "fuzzy": {
+            "name": "cn.sundashan.com"
+        }
+    }
+}
+输出：
+{ - 
+  "took": 76,
+  "timed_out": false,
+  "_shards": { - 
+    "total": 30,
+    "successful": 30,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": { - 
+    "total": 102,
+    "max_score": 14.483483,
+    "hits": [ - 
+      { - 
+        "_index": "index_name",
+        "_type": "_doc",
+        "_id": "478244343",
+        "_score": 14.483483,
+        "_source": { + }
+      },
+      { + },
+    }
+}
+```
+fuzziness默认为AUTO，下面调整fuzziness的值
+```jsx{3,4,5,6}
+{
+  "query": {
+    "fuzzy": {
+      "name": {
+        "value": "cn.sundashan.com",
+        "fuzziness": 2 // fuzziness为匹配度，通过调整fuzziness，得到的结果不同
+      }
+    }
+  }
+}
+结果同上
+```
+```jsx{6}
+{
+  "query": {
+    "fuzzy": {
+      "name": {
+        "value": "cn.sundashan.com",
+        "fuzziness": 1 
+      }
+    }
+  }
+}
+输出：
+{ - 
+  "took": 15,
+  "timed_out": false,
+  "_shards": { - 
+    "total": 30,
+    "successful": 30,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": { - 
+    "total": 0,
+    "max_score": null,
+    "hits": [ - 
+    ]
+  }
+}
+```
 ### 4.2. refresh
-默认为每秒执行一次。
+显式地刷新一个或多个索引
 当我们对数据进行操作，如增删改时，需要手动刷新，才能被搜索到
+默认情况下会定期安排刷新。
 ### 4.3. flush
-刷新es，与refresh的区别是：
-...
+刷新es，与refresh的区别是：参考文末链接，已经讲得很好了，目前我理解不太深就不瞎哔哔了。
 ### 4.4. delete_by_query
-顾名思义，根据query对数据进行删除， 会删除所有query语句匹配上的文档
+delete_by_query:顾名思义，根据query对数据进行删除， 会删除所有query语句匹配上的文档
 ### 4.5. update_by_query
-根据查询，对文档进行更新
+update_by_query:根据查询，对文档进行更新
 ```jsx
     body = {
         "query": {
@@ -362,8 +439,7 @@ es = Elasticsearch(server_list, timeout=60)
     result["age"] = "15" 
     es.update(index='index_name', doc_type='_doc', id='_id', doc={"doc":result})
 ```
-### 4.7. index
-### 4.8. bulk
+### 4.7. bulk
 批量操作
 ```jsx
 result = []
@@ -385,9 +461,37 @@ for i in data: // 预设data是某list
     ret = es.update(index='index_name', doc_type='_doc', id=_id, doc={"doc":result})
     es.refresh(index='index_name')
 ```
-### 4.9. count
-### 4.10. indices.exists()
+### 4.8. count
+```jsx
+def test_count():
+    body = {
+        "query": {
+            "bool": {
+                "must": {
+                    "term": {
+                        "type": "one"
+                    }
+                }
+            }
+        },
+    }
+    ret = es.count(index='index_name', doc=body)
+    print(ret)
+    es.refresh(index='index_name')
+输出：{u'count': 7, u'_shards': {u'successful': 1, u'failed': 0, u'skipped': 0, u'total': 1}}
+```
+### 4.9. indices.exists():索引是否存在
+```jsx
+def test_index_exists():
+    ret = es.index_exists(index='index_name')
+    print(ret)
+    es.refresh(index='index_name')
+输出：True
+```
 
 ## 5. 其他
 multi_match 可指定多个字段
 match_phrase 短语匹配查询
+
+## 参考链接
+https://www.jianshu.com/p/15837be98ffd
